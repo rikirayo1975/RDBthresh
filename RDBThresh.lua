@@ -101,7 +101,7 @@ function Thresh.Harass()
 	if Menu.Get("HQ") and spells.Q:IsReady() then
         for k, qTarget in ipairs(Thresh.GetTargets(spells.Q.Range)) do
 	        if spells.Q:CastOnHitChance(qTarget,QChance) then
-	        	if qTarget:GetBuff("threshq") and spells.Q:Cast(qTarget) then
+	        	if qTarget:GetBuff("threshq") and Menu.Get("HQ2") and spells.Q:Cast(qTarget) then
 	  			end
 	  		end
         end
@@ -120,7 +120,7 @@ function Thresh.Combo()
 	if spells.Q:IsReady() then
 		for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
 			if Menu.Get("CQ") and spells.Q:CastOnHitChance(Target,QChance) then end
-				if Target:GetBuff("threshq") and spells.Q:Cast(Target) then
+				if Target:GetBuff("threshq") and Menu.Get("CQ2") and spells.Q:Cast(Target) then
 			end
 		end
 	end
@@ -185,6 +185,7 @@ function Thresh.LoadMenu()
 
             Menu.ColoredText("Combo", 0X0099FFFF,false)
             Menu.Checkbox("CQ", "Use Q", true)
+            Menu.Checkbox("CQ2", "Use 2º Q", true)
             Menu.Slider("CCQ", "HitChance Q", 0.7, 0, 1, 0.05)
             Menu.Checkbox("CE", "Use W", true)
             Menu.Checkbox("CR","Use R",true)
@@ -193,6 +194,7 @@ function Thresh.LoadMenu()
 
             Menu.ColoredText("Harass", 0X0099FFFF,false)
             Menu.Checkbox("HQ", "Use Q", true)
+            Menu.Checkbox("HQ2", "Use 2º Q", true)
             Menu.Slider("HCQ", "HitChance Q", 0.7, 0, 1, 0.05)
             Menu.Checkbox("HE", "Use E", true)
 
