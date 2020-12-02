@@ -16,7 +16,7 @@ local Menu, Orbwalker, Collision, Prediction, HealthPred = _G.Libs.NewMenu, _G.L
 local DmgLib, ImmobileLib, Spell = _G.Libs.DamageLib, _G.Libs.ImmobileLib, _G.Libs.Spell
 local AbilityResourceTypes, BuffTypes, DamageTypes, Events, GameObjectOrders, HitChance, ItemSlots, ObjectTypeFlags, PerkIDs, SpellSlots, SpellStates, Teams = 
 Enums.AbilityResourceTypes, Enums.BuffTypes, Enums.DamageTypes, Enums.Events, Enums.GameObjectOrders, Enums.HitChance, Enums.ItemSlots, Enums.ObjectTypeFlags, Enums.PerkIDs, Enums.SpellSlots, Enums.SpellStates, Enums.Teams
-local TS
+local TS = _G.Libs.TargetSelector()
 local SpellSlots, SpellStates = Enums.SpellSlots, Enums.SpellStates
 local Thresh = {}
 local spells = {
@@ -50,7 +50,7 @@ local function Game_ON()
 	--juego activo, no muerto, etc.
 	return not (Game.IsChatOpen() or Game.IsMinimized() or Player.IsDead or Player.IsRecalling)
 end
-local IsValidTarget = function(object, range, from)
+local function IsValidTarget(object, range, from)
     return TS:IsValidTarget(object, range, from)
 end
 local function EnemiesInRange(pos,range,enemies)
@@ -99,7 +99,7 @@ end
 function Thresh.Harass()
 	local QChance = Menu.Get("HCQ")
 	if Menu.Get("HQ") and spells.Q:IsReady() then
-        for k, qTarget in ipairs(Thresh.GetTargets(1100)) do
+        for k, qTarget in ipairs(Thresh.GetTargets(spells.Q.Range)) do
 	        if spells.Q:CastOnHitChance(qTarget,QChance) then
 	        	if qTarget:GetBuff("threshq") and spells.Q:Cast(qTarget) then
 	  			end
@@ -131,18 +131,12 @@ function Thresh.Combo()
             end
         end
     end
-    local count = 0
-    local RRange = spells.R.Range
-    local enemies = ObjManager.Get("enemy", "heroes")
-    local PP = Player.Position
-    --[[for i, enemy in pairs(enemies) do
-    	local enemy = enemy.AsAI
-    	if enemy and IsValidTarget(enemy, RRange) then
-                    count = count + 1
+    if Menu.Get("CR") and spells.R:IsReady() then
+        for k,eTarget in ipairs(Thresh.GetTargets(spells.R.Range)) do
+            if spells.R:Cas() then
+                return
+            end
         end
-    end]]
-    if EnemiesInRange(PP, RRange, enemies) >= Menu.Get("AR") then
-    	spells.R:Cast()
     end
 end
 function Thresh.OnTick()
@@ -158,37 +152,58 @@ function Thresh.OnTick()
     Thresh.auto()
 end
 function Thresh.auto()
-	local range = spells.W.Range
-	for k,ally in pairs(ObjManager.Get("ally","heroes")) do
-		local Ally = ally.AsHero
-		if Ally:Distance(Player) <= spells.W.Range and EnemiesInRange(Ally,600) >= Menu.Get("AE") then
-			spells.W:Cast(Ally)
+	if Menu.Get("AR") then
+		local count = 0
+	    local RRange = spells.R.Range
+	    local enemies = ObjManager.Get("enemy", "heroes")
+	    local PP = Player.Position
+	    if EnemiesInRange(PP, RRange, enemies) >= Menu.Get("MAR") then
+	    	spells.R:Cast()
+	    end
+	end
+	if Menu.Get("AW") then
+		local range = spells.W.Range
+		for k,ally in pairs(ObjManager.Get("ally","heroes")) do
+			local Ally = ally.AsHero
+			if Ally:Distance(Player) <= spells.W.Range and EnemiesInRange(Ally,600) >= Menu.Get("MAW") then
+				spells.W:Cast(Ally)
+			end
 		end
 	end
 end
+function Thresh.OnGapclose(source,dash)
+    if not (source.IsEnemy and Menu.Get("AE") and spells.E:IsReady()) then return end
+    local paths = dash:GetPaths()
+    local endPos = paths[#paths].EndPos
+    if source:Distance(Player) < 400 then
+        spells.E:Cast(source)
+    end
+end
 function Thresh.LoadMenu()
 	Menu.RegisterMenu("ThreshRDB","ThreshRDB",function ()
-		Menu.ColumnLayout("cols", "cols", 4, true, function()
-			Menu.ColoredText("WaveClear", 0x0099FFFF, false)
-				Menu.Checkbox("farmQ", "Use Q", true)
-				TS = _G.Libs.TargetSelector()
+		Menu.ColumnLayout("cols", "cols", 3, true, function()
 
-            Menu.NextColumn()
             Menu.ColoredText("Combo", 0X0099FFFF,false)
             Menu.Checkbox("CQ", "Use Q", true)
             Menu.Slider("CCQ", "HitChance Q", 0.7, 0, 1, 0.05)
             Menu.Checkbox("CE", "Use W", true)
             Menu.Checkbox("CR","Use R",true)
-            Menu.Slider("AR", "Min. Heroes Hits", 3, 0, 5, 1)
+
             Menu.NextColumn()
+
             Menu.ColoredText("Harass", 0X0099FFFF,false)
             Menu.Checkbox("HQ", "Use Q", true)
             Menu.Slider("HCQ", "HitChance Q", 0.7, 0, 1, 0.05)
             Menu.Checkbox("HE", "Use E", true)
+
             Menu.NextColumn()
+
             Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
-            Menu.Checkbox("Burst", "Auto E", true)
-            Menu.Slider("AE", "Min. Enemies", 3, 0,3, 1)
+            Menu.Checkbox("AR","Use R",true)
+            Menu.Slider("MAR", "Min. Heroes Hits", 3, 0, 5, 1)
+            Menu.Checkbox("AE", "E when gapclose", true)
+            Menu.Checkbox("AW", "Auto W", true)
+            Menu.Slider("MAW", "Min. Enemies", 3, 0,3, 1)
 			end)
         Menu.Separator()
         Menu.ColoredText("Draws", 0X0099FFFF, false)
