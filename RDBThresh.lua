@@ -109,7 +109,8 @@ function Thresh.Harass()
     
     if Menu.Get("HE") and spells.E:IsReady() then
         for k,eTarget in ipairs(Thresh.GetTargets(spells.E.Range)) do
-            if spells.E:Cast(eTarget) then
+            local pull = eTarget.Position:RotatedAroundPoint(Player, 3,0,3)
+            if spells.E:Cast(pull) then
                 return
             end
         end
@@ -126,14 +127,15 @@ function Thresh.Combo()
 	end
 	if Menu.Get("CE") and spells.E:IsReady() then
         for k,eTarget in ipairs(Thresh.GetTargets(spells.E.Range)) do
-            if spells.E:Cast(eTarget) then
+            local pull = eTarget.Position:RotatedAroundPoint(Player, 3,0,3)
+            if spells.E:Cast(pull) then
                 return
             end
         end
     end
     if Menu.Get("CR") and spells.R:IsReady() then
         for k,eTarget in ipairs(Thresh.GetTargets(spells.R.Range)) do
-            if spells.R:Cas() then
+            if spells.R:Cast() then
                 return
             end
         end
@@ -187,7 +189,7 @@ function Thresh.LoadMenu()
             Menu.Checkbox("CQ", "Use Q", true)
             Menu.Checkbox("CQ2", "Use 2º Q", true)
             Menu.Slider("CCQ", "HitChance Q", 0.7, 0, 1, 0.05)
-            Menu.Checkbox("CE", "Use W", true)
+            Menu.Checkbox("CE", "Use E", true)
             Menu.Checkbox("CR","Use R",true)
 
             Menu.NextColumn()
