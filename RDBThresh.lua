@@ -98,38 +98,90 @@ end
 
 function Thresh.Harass()
 	local QChance = Menu.Get("HCQ")
-	if Menu.Get("HQ") and spells.Q:IsReady() then
+	--[[if Menu.Get("HQ") and spells.Q:IsReady() then
         for k, qTarget in ipairs(Thresh.GetTargets(spells.Q.Range)) do
 	        if spells.Q:CastOnHitChance(qTarget,QChance) then
 	        	if qTarget:GetBuff("threshq") and Menu.Get("HQ2") and spells.Q:Cast(qTarget) then
 	  			end
 	  		end
         end
+    end]]
+    for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
+        local targetAI = Target.AsAI
+        if targetAI and Menu.Get("HQ") then
+            qPred = Prediction.GetPredictedPosition(targetAI, spells.Q, Player.Position)
+            if qPred then 
+                if qPred.HitChance >= Menu.Get("HCQ") then
+                    qPred = qPred.CastPosition
+                else 
+                    qPred = nil
+                end
+            end
+        end
+    end
+    
+    if Player:GetSpellState(SpellSlots.Q) == SpellStates.Ready
+        and qPred then
+        Input.Cast(SpellSlots.Q, qPred)
+        if Player:GetSpellState(SpellSlots.Q) == SpellStates.Ready and Menu.Get("HQ2") and spells.Q:Cast(Player) then end
     end
     
     if Menu.Get("HE") and spells.E:IsReady() then
         for k,eTarget in ipairs(Thresh.GetTargets(spells.E.Range)) do
-            local pull = eTarget.Position:RotatedAroundPoint(Player, 3,0,3)
-            if spells.E:Cast(pull) then
-                return
+            if (Menu.Get("HPull")) then
+                local pull = eTarget.Position:RotatedAroundPoint(Player, 3,0,3)
+                if spells.E:Cast(pull) then
+                    return
+                end
+            else
+                spells.E:Cast(eTarget)
             end
         end
     end
 end
 function Thresh.Combo()
+    local qPred = nil
 	local QChance = Menu.Get("CCQ")
-	if spells.Q:IsReady() then
-		for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
-			if Menu.Get("CQ") and spells.Q:CastOnHitChance(Target,QChance) then end
+    --[[if Menu.Get("CQ") then
+	   if spells.Q:IsReady() then
+    		for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
+                local pred = Prediction.GetPredictedPosition(Target, spells.Q, Player.Position)
+                spells.Q:CastOnHitChance(pred.CastPosition,QChance)
 				if Target:GetBuff("threshq") and Menu.Get("CQ2") and spells.Q:Cast(Target) then
-			end
+                end
+            end
 		end
-	end
+	end]]
+    for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
+        local targetAI = Target.AsAI
+        if targetAI and Menu.Get("CQ") then
+            qPred = Prediction.GetPredictedPosition(targetAI, spells.Q, Player.Position)
+            if qPred then 
+                if qPred.HitChance >= Menu.Get("CCQ") then
+                    qPred = qPred.CastPosition
+                else 
+                    qPred = nil
+                end
+            end
+        end
+    end
+    
+    if Player:GetSpellState(SpellSlots.Q) == SpellStates.Ready
+        and qPred then
+        Input.Cast(SpellSlots.Q, qPred)
+        if Player:GetSpellState(SpellSlots.Q) == SpellStates.Ready and Menu.Get("CQ2") and spells.Q:Cast(Player) then end
+    end
+
+
 	if Menu.Get("CE") and spells.E:IsReady() then
         for k,eTarget in ipairs(Thresh.GetTargets(spells.E.Range)) do
-            local pull = eTarget.Position:RotatedAroundPoint(Player, 3,0,3)
-            if spells.E:Cast(pull) then
-                return
+            if (Menu.Get("CPull")) then
+                local pull = eTarget.Position:RotatedAroundPoint(Player, 3,0,3)
+                if spells.E:Cast(pull) then
+                    return
+                end
+            else
+                spells.E:Cast(eTarget)
             end
         end
     end
@@ -190,6 +242,7 @@ function Thresh.LoadMenu()
             Menu.Checkbox("CQ2", "Use 2º Q", true)
             Menu.Slider("CCQ", "HitChance Q", 0.7, 0, 1, 0.05)
             Menu.Checkbox("CE", "Use E", true)
+            Menu.Checkbox("CPull", "E to pull", true)
             Menu.Checkbox("CR","Use R",true)
 
             Menu.NextColumn()
@@ -199,6 +252,7 @@ function Thresh.LoadMenu()
             Menu.Checkbox("HQ2", "Use 2º Q", true)
             Menu.Slider("HCQ", "HitChance Q", 0.7, 0, 1, 0.05)
             Menu.Checkbox("HE", "Use E", true)
+            Menu.Checkbox("HPull", "E to pull", true)
 
             Menu.NextColumn()
 
