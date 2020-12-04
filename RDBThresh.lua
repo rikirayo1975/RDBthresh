@@ -1,7 +1,7 @@
 	--[[
 Code by: rikirayo
-Version: 1.0.0
-Published: 02/12/2020
+Version: 1.0.2
+Published: 4/12/2020
 ]]
 
 if Player.CharName ~= "Thresh" then return end
@@ -23,7 +23,7 @@ local spells = {
 	Q = Spell.Skillshot({
 		Slot = SpellSlots.Q,
 		Range = 1100,
-		Widht = 140,
+		Widht = 150,
 		Speed = 1900,
 		Delay = 0.5,
 		Collisions = {Heroes=true, Minions=true, WindWall=true},
@@ -101,13 +101,10 @@ function Thresh.Harass()
 	if Menu.Get("HQ") and spells.Q:IsReady() then
         for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
             local qPred = Prediction.GetPredictedPosition(Target.AsAI, spells.Q, Player.Position)
-            if(qPred.HitChance > QChance) then
+            if(qPred and qPred.HitChance > QChance) then
                 local pred = qPred.CastPosition
-                local test = Collision.SearchMinions(Player.Position,pred,spells.Q.Widht,spells.Q.Speed,spells.Q.Delay,1,"enemy",0)
-                if not test.Result then
                     spells.Q:Cast(pred)
-                end
-                if Target:GetBuff("threshq") and Menu.Get("HQ2") and spells.Q:Cast(Target) then
+                if Target:GetBuff("threshq") and Menu.Get("CQ2") and spells.Q:Cast(Target) then
                 end
             end
         end
@@ -128,12 +125,9 @@ function Thresh.Combo()
 	   if spells.Q:IsReady() then
     		for k, Target in ipairs(Thresh.GetTargets(spells.Q.Range)) do
                 local qPred = Prediction.GetPredictedPosition(Target.AsAI, spells.Q, Player.Position)
-                if(qPred.HitChance > QChance) then
+                if(qPred and qPred.HitChance > QChance) then
                     local pred = qPred.CastPosition
-                    local test = Collision.SearchMinions(Player.Position,pred,spells.Q.Widht,spells.Q.Speed,spells.Q.Delay,1,"enemy",0)
-                    if not test.Result then
                         spells.Q:Cast(pred)
-                    end
     				if Target:GetBuff("threshq") and Menu.Get("CQ2") and spells.Q:Cast(Target) then
                     end
                 end
